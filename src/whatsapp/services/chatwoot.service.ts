@@ -1332,6 +1332,8 @@ export class ChatwootService {
       contactsArrayMessage: msg.contactsArrayMessage,
       locationMessage: msg.locationMessage,
       liveLocationMessage: msg.liveLocationMessage,
+      listMessage: msg.listMessage,
+      listResponseMessage: msg.listResponseMessage,
     };
 
     this.logger.verbose('type message: ' + types);
@@ -1349,11 +1351,27 @@ export class ChatwootService {
       const latitude = result.degreesLatitude;
       const longitude = result.degreesLongitude;
 
-      const formattedLocation = `**Location:**
-        **latitude:** ${latitude}
-        **longitude:** ${longitude}
-        https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}
-        `;
+      const locationName = result?.name || 'Unknown';
+      const locationAddress = result?.address || 'Unknown';
+
+      const formattedLocation =
+        '*Localização:*\n\n' +
+        '_Latitude:_ ' +
+        latitude +
+        '\n' +
+        '_Longitude:_ ' +
+        longitude +
+        '\n' +
+        '_Nome:_ ' +
+        locationName +
+        '\n' +
+        '_Endereço:_ ' +
+        locationAddress +
+        '\n' +
+        '_Url:_ https://www.google.com/maps/search/?api=1&query=' +
+        latitude +
+        ',' +
+        longitude;
 
       this.logger.verbose('message content: ' + formattedLocation);
 
@@ -1371,19 +1389,17 @@ export class ChatwootService {
         }
       });
 
-      let formattedContact = `**Contact:**
-        **name:** ${contactInfo['FN']}`;
+      let formattedContact = '*Contact:*\n\n' + '_Name:_ ' + contactInfo['FN'];
 
       let numberCount = 1;
       Object.keys(contactInfo).forEach((key) => {
         if (key.startsWith('item') && key.includes('TEL')) {
           const phoneNumber = contactInfo[key];
-          formattedContact += `\n**number ${numberCount}:** ${phoneNumber}`;
+          formattedContact += '\n_Number (' + numberCount + '):_ ' + phoneNumber;
           numberCount++;
-        }
-        if (key.includes('TEL')) {
+        } else if (key.includes('TEL')) {
           const phoneNumber = contactInfo[key];
-          formattedContact += `\n**number:** ${phoneNumber}`;
+          formattedContact += '\n_Number (' + numberCount + '):_ ' + phoneNumber;
           numberCount++;
         }
       });
@@ -1404,19 +1420,17 @@ export class ChatwootService {
           }
         });
 
-        let formattedContact = `**Contact:**
-            **name:** ${contact.displayName}`;
+        let formattedContact = '*Contact:*\n\n' + '_Name:_ ' + contact.displayName;
 
         let numberCount = 1;
         Object.keys(contactInfo).forEach((key) => {
           if (key.startsWith('item') && key.includes('TEL')) {
             const phoneNumber = contactInfo[key];
-            formattedContact += `\n**number ${numberCount}:** ${phoneNumber}`;
+            formattedContact += '\n_Number (' + numberCount + '):_ ' + phoneNumber;
             numberCount++;
-          }
-          if (key.includes('TEL')) {
+          } else if (key.includes('TEL')) {
             const phoneNumber = contactInfo[key];
-            formattedContact += `\n**number:** ${phoneNumber}`;
+            formattedContact += '\n_Number (' + numberCount + '):_ ' + phoneNumber;
             numberCount++;
           }
         });
@@ -1429,6 +1443,62 @@ export class ChatwootService {
       this.logger.verbose('formatted contacts: ' + formattedContactsArray);
 
       return formattedContactsArray;
+    }
+
+    if (typeKey === 'listMessage') {
+      const listTitle = result?.title || 'Unknown';
+      const listDescription = result?.description || 'Unknown';
+      const listFooter = result?.footerText || 'Unknown';
+
+      let formattedList =
+        '*List Menu:*\n\n' +
+        '_Title_: ' +
+        listTitle +
+        '\n' +
+        '_Description_: ' +
+        listDescription +
+        '\n' +
+        '_Footer_: ' +
+        listFooter;
+
+      if (result.sections && result.sections.length > 0) {
+        result.sections.forEach((section, sectionIndex) => {
+          formattedList += '\n\n*Section ' + (sectionIndex + 1) + ':* ' + section.title || 'Unknown\n';
+
+          if (section.rows && section.rows.length > 0) {
+            section.rows.forEach((row, rowIndex) => {
+              formattedList += '\n*Line ' + (rowIndex + 1) + ':*\n';
+              formattedList += '_▪️ Title:_ ' + (row.title || 'Unknown') + '\n';
+              formattedList += '_▪️ Description:_ ' + (row.description || 'Unknown') + '\n';
+              formattedList += '_▪️ ID:_ ' + (row.rowId || 'Unknown') + '\n';
+            });
+          } else {
+            formattedList += '\nNo lines found in this section.\n';
+          }
+        });
+      } else {
+        formattedList += '\nNo sections found.\n';
+      }
+
+      return formattedList;
+    }
+
+    if (typeKey === 'listResponseMessage') {
+      const responseTitle = result?.title || 'Unknown';
+      const responseDescription = result?.description || 'Unknown';
+      const responseRowId = result?.singleSelectReply?.selectedRowId || 'Unknown';
+
+      const formattedResponseList =
+        '*List Response:*\n\n' +
+        '_Title_: ' +
+        responseTitle +
+        '\n' +
+        '_Description_: ' +
+        responseDescription +
+        '\n' +
+        '_ID_: ' +
+        responseRowId;
+      return formattedResponseList;
     }
 
     this.logger.verbose('message content: ' + result);
