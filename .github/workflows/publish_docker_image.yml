@@ -8,7 +8,7 @@ on:
 jobs:
   build_deploy:
     name: Build and Deploy
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     permissions:
       contents: read
       packages: write
@@ -23,7 +23,6 @@ jobs:
           images: atendai/evolution-api
           tags: |
             type=semver,pattern=v{{version}}
-            type=semver,pattern=v{{major}}.{{minor}}
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
