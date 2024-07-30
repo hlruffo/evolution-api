@@ -730,7 +730,7 @@ export class OpenaiService {
         })
         .then((instance) => instance.id);
 
-      const defaultSettingCheck = await this.prismaRepository.typebotSetting.findFirst({
+      const defaultSettingCheck = await this.prismaRepository.openaiSetting.findFirst({
         where: {
           instanceId,
         },
