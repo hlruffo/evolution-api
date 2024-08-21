@@ -711,7 +711,7 @@ export class DifyController extends ChatbotController implements ChatbotControll
     if (!this.integrationEnabled) return;
 
     try {
-      const settings = await this.prismaRepository.difySetting.findFirst({
+      const settings = await this.settingsRepository.findFirst({
         where: {
           instanceId: instance.instanceId,
         },
